@@ -1,9 +1,11 @@
 package com.myproject.journalApp.controller;
 
 
+import com.myproject.journalApp.api.response.WeatherResponse;
 import com.myproject.journalApp.entity.User;
 import com.myproject.journalApp.repository.UserRepository;
 import com.myproject.journalApp.service.UserService;
+import com.myproject.journalApp.service.WeatherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.MessageFormat;
 import java.util.List;
 
 @RestController
@@ -24,14 +27,15 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
-    @GetMapping
-    public List<User>getAllUser(){
-        return userService.getAll();
+    @Autowired
+    private WeatherService weatherService;
 
+
+
+    @PostMapping("/create-admin-user")
+    public void createUser(@RequestBody User user){
+        userService.saveAdmin(user);
     }
-
-
-
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -70,6 +74,17 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @GetMapping
+    public ResponseEntity<?> greeting(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        WeatherResponse weatherResponse = weatherService.getWeather("Mumbai");
+        String greeting ="";
+        if(weatherResponse != null){
+           greeting= ",Weather feels like "+ weatherResponse.getCurrent().getFeelslike();
+
+        }
+        return new ResponseEntity<>("Hi " + authentication.getName() + greeting,HttpStatus.OK);
+    }
 
 
 
